@@ -31,7 +31,7 @@ def login(email: str = Form(...), password: str = Form(...)):
         connection.close()
         return {"message": "Login Successfully", "token": token}
     else:
-        raise HTTPException(status_code=401, detail="Invalid Credentials")
+        raise HTTPException(status_code=401, detail="Invalid email/password combination, please try again")
 
 @app.post("/todos")
 def todos(token: str = Header(...)):

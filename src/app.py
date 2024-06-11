@@ -48,6 +48,6 @@ def todos(token: str = Header(...)):
         todos = cursor.fetchall()
         cursor.close()
         connection.close()
-        return {"todos": todos, "message": "Todos fetched successfully"}
+        return {"todos": todos, "message": "Todos loaded successfully"}
     else:
         raise HTTPException(status_code=401, detail="Unauthorized")

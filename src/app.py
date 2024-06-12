@@ -10,10 +10,10 @@ from src.oauth import oauth2_scheme
   
 app = FastAPI(lifespan=lifespan, title='Login Portal')
  
-@app.get("/mainpage",response_model=dict[str,str])
-def main(token: Annotated[OAuth2PasswordBearer, Depends(oauth2_scheme)])->dict[str,str]:
-    return {"message": f"Welcome to the main page of our portal"}
  
+@app.get("/mainpage", response_model=dict[str,str])
+def main(token: Annotated[str, Depends(oauth2_scheme)]) -> dict[str,str]:
+    return {"message": f"Welcome to the main page of our portal"}
 
 app.include_router(signin.router)
 app.include_router(signout.router)

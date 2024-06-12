@@ -18,8 +18,11 @@ def signin(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAuth2Passwor
             status_code=400,
             detail="Incorrect username or password",
         )
-    access_token_expires = timedelta(minutes=10)
+    access_token_expires = timedelta(minutes=1)
     access_token = create_access_token(
         username=user.user_name, validation_time=access_token_expires
     )
+    user.token = access_token
+    session.add(user)
+    session.commit()
     return {"message": "Login Successfully", "token": access_token}

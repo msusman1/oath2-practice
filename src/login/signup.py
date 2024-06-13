@@ -13,7 +13,7 @@ router =APIRouter()
 
 @router.post('/signup')
 def signup(session: Annotated[Session, Depends(get_session)],
-           user_name: Annotated[str, Form()],
+           username: Annotated[str, Form()],
            email: Annotated[str, Form()],
            phone: Annotated[str, Form()],
            password: Annotated[str, Form()],
@@ -22,9 +22,7 @@ def signup(session: Annotated[Session, Depends(get_session)],
     
     allowed_domains = ["gmail.com", "yahoo.com", "outlook.com"]  
 
-    if not validate_phone_number(phone):
-        raise HTTPException(status_code=400, detail="Invalid phone number format.")
-
+    
     if not validate_email_format(email):
         raise HTTPException(status_code=400, detail="Invalid email format.")
     
@@ -38,11 +36,13 @@ def signup(session: Annotated[Session, Depends(get_session)],
     if existing_email:
         raise HTTPException(status_code=400, detail=f"Email {email} is already in use.")
 
-    existing_user_name = session.exec(select(Users).where(Users.user_name == user_name)).first()
+    existing_user_name = session.exec(select(Users).where(Users.user_name == username)).first()
     if existing_user_name:
-        raise HTTPException(status_code=400, detail=f"Username {user_name} is already in use.")
- 
-    user = Users(email=email, password=password, phone=phone, user_name=user_name)
+        raise HTTPException(status_code=400, detail=f"Username {username} is already in use.")
+    if not validate_phone_number(phone):
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+
+    user = Users(email=email, password=password, phone=phone, user_name=username)
 
     try:
         session.add(user)

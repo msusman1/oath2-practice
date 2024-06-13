@@ -25,4 +25,4 @@ def signin(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAuth2Passwor
     user.token = access_token
     session.add(user)
     session.commit()
-    return {"message": "Login Successfully", "token": access_token}
+    return {"access_token": access_token, "token_type": "bearer", "message": "Login Successfully"} 

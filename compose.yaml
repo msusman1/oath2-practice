@@ -1,6 +1,6 @@
 version: "3.9"
 
-name: 'My login system'
+name: 'login'
 
 services:
   auth_portal:

@@ -15,10 +15,9 @@ def get_user(session: Session, username: str):
 
 def verify_password(user_password, db_password):
     return user_password == db_password   
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session:Annotated[Session , Depends(get_session)]):
-    decode_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    username: str = decode_token.get("sub")
-    user = get_user(session, username)
+
+def get_current_user(token: str, session:Session):
+    user = session.exec(select(Users).where(Users.token == token)).first()
     return user
 
 

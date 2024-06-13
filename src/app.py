@@ -1,53 +1,29 @@
-from fastapi import FastAPI, Form, Header, HTTPException
-from uuid import uuid4
-import psycopg2
+from fastapi import FastAPI, Depends, Header
+from typing import Annotated
+from src.creating_tables import lifespan
+from fastapi.security import OAuth2PasswordBearer
+from src.login import signin, signout, signup
+from src.oauth import oauth2_scheme
+from src.helper_fun import get_current_user
+from src.database import get_session
+from sqlmodel import Session, select
+from src.model import Users
+from jose import jwt
 
+from src.setting import ALGORITHM,SECRET_KEY
 app = FastAPI()
 
-def get_connection():
-    return psycopg2.connect(
-        dbname="oath2-db",
-        user="root",
-        password="q3tJbd6QZiFC---",
-        host="ep-purple-frost-a5qh2mmz.us-east-2.aws.neon.tech",
-        sslmode="require"
-    )
 
-@app.post("/login")
-def login(email: str = Form(...), password: str = Form(...)):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
-    user = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    if user:
-        token = str(uuid4())
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("UPDATE users SET token = %s WHERE email = %s AND password = %s", (token, email, password))
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return {"message": "Login Successfully", "token": token}
+@app.get("/newmainpage", response_model=dict[str, str])
+def main(token:Annotated[OAuth2PasswordBearer,Depends(oauth2_scheme)] , session: Annotated[Session, Depends(get_session)]) -> dict[str, str]:
+    print(f"signout token is {token}")
+    current_user = session.exec(select(Users).where(Users.token == token)).first()
+    if current_user:
+        return {"message": "Welcome to the main page of our portal","token":token}
     else:
-        raise HTTPException(status_code=401, detail="Invalid email/password combination, please try again")
+        return {"message": "Please login"}
 
-@app.post("/todos")
-def todos(token: str = Header(...)):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE token = %s", (token,))
-    user = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    if user:
-        connection = get_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM todo")
-        todos = cursor.fetchall()
-        cursor.close()
-        connection.close()
-        return {"todos": todos, "message": "Todos loaded successfully"}
-    else:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+
+app.include_router(signin.router)
+app.include_router(signout.router)
+app.include_router(signup.router)
